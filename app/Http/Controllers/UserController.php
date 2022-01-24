@@ -125,9 +125,9 @@ class UserController extends Controller
         $update->update();
 
         if($update){
-            return response()->json(['status'=>'update berhasil']);
+            return response()->json($update);
         }else{
-            return response()->json(['status'=>'gagal']);
+            return response()->json($update);
         }
     }
 

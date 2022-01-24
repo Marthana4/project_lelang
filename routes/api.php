@@ -27,7 +27,7 @@ use App\Http\Controllers\LelangController;
 
 Route::post('login', [UserController::class, 'login']);
 Route::post('register', [UserController::class, 'register']);
-Route::put('edit/{id}', [UserController::class], 'edit');
+Route::put('edit/{id}', [App\Http\Controllers\UserController::class, 'edit'])->name('edit');
 Route::delete('delete/{id}', [App\Http\Controllers\UserController::class, 'destroy'])->name('delete');
 
 Route::group(['middleware' => ['jwt.verify:petugas,admin']], function ()
