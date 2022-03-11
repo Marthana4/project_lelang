@@ -25,12 +25,13 @@ class HistoryController extends Controller
     {
         $history = History::select('history.id_history as id_history',
         'lelang.id_lelang as id_lelang','barang.id_barang as id_barang','barang.nama_barang as nama_barang', 'lelang.tgl_lelang as tgl_lelang', 'lelang.harga_akhir as harga_akhir',
-        'users.id as id_pengguna', 'history.status_pemenang as status_pemenang')
+        'users.id as id_pengguna','users.nama as nama','history.penawaran_harga as penawaran_harga', 'history.status_pemenang as status_pemenang')
+        
         ->join('barang', 'history.id_barang', '=', 'barang.id_barang')
         ->join('users', 'history.id_pengguna', '=', 'users.id')
         ->join('lelang', 'history.id_lelang', '=', 'lelang.id_lelang')
         ->get();
-        return Response()->json(['data'=>$history]);
+        return Response()->json($history);
     }
 
     /**
@@ -103,11 +104,13 @@ class HistoryController extends Controller
 
         $data = [$update_menang, $update_kalah];
 
-        if ($update_menang && $update_kalah) {
-            return Response()->json(['status'=>'berhasil']);
-        } else {
-            return Response()->json(['status'=>'gagal', 'data' => $data]);
-        }
+        // if ($update_menang && $update_kalah) {
+        //     return Response()->json(['status'=>'berhasil']);
+        // } else {
+        //     return Response()->json(['status'=>'gagal', 'data' => $data]);
+        // }
+
+        return Response()->json($data);
     }
 
     /**
@@ -122,51 +125,40 @@ class HistoryController extends Controller
                 ->join('barang','lelang.id_barang','=','barang.id_barang')
                 ->first();
 
-        $users= User::all()
-                ->get();
+        // $users= User::all()
+        //         ->get();
 
-        $penawaran = History::where('id_lelang',$id)
-                    ->where('id_petugas',Auth::user()->id)->first();
+        // $penawaran = History::where('id_lelang',$id)
+        //             ->where('id_petugas',Auth::user()->id)->first();
               
-        $data = History::where('id_lelang',$id) 
-                ->join('users','lelang.id_petugas','=','users.id')
-                ->join('users','history.id_pengguna','=','users.id')
-                ->get();
+        $history=DB::table('history')->leftJoin('users', 'history.id_pengguna', 'users.id')
+                    ->select('users.*', 'history.*')
+                    ->where('history.id_lelang', '=', $id)
+                    ->orderBy('history.penawaran_harga', 'DESC')
+                    ->get();
 
-        return Response()->json([$data]);
+        return Response()->json($history);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function reporthistory(Request $request)
     {
-        //
-    }
+        $validator = Validator::make($request->all(), [
+            'status_pemenang' => 'required',
+        ]);
+        
+        if($validator->fails()) {
+            return response()->json($validator->errors());
+        }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+        $status_pemenang = $request->status_pemenang;
+        
+        $data = DB::table('history') ->join('barang', 'history.id_barang', '=', 'barang.id_barang')
+                                    ->join('users', 'history.id_pengguna', '=', 'users.id')
+                                    ->join('lelang', 'history.id_lelang', '=', 'lelang.id_lelang')
+                                    ->select('history.*', 'barang.nama_barang','lelang.tgl_lelang','lelang.harga_akhir', 'users.nama', 'users.no_hp')
+                                    ->where('status_pemenang', '=' , $status_pemenang)
+                                    ->get();
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        return response()->json($data);
     }
 }

@@ -3,9 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController; 
-use App\Http\Controllers\LelangController; 
+// use App\Http\Controllers\LelangController; 
 // use App\Http\Controllers\PenggunaController; 
-
+// use App\Http\Controllers\HistoryController; 
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -36,16 +36,15 @@ Route::group(['middleware' => ['jwt.verify:petugas,admin']], function ()
     Route::get('show/{id}', [UserController::class, 'show']);
     Route::get('logincheck', [UserController::class, 'logincheck']);
     Route::resource('barang', BarangController::class);
-    // Route::resource('pengguna', PenggunaController::class); 
-    // Route::resource('petugas', PetugasController::class);
-    // Route::resource('admin', AdminController::class);
     Route::resource('lelang', LelangController::class);
     Route::resource('history', HistoryController::class);
-    Route::post('penawaran/{id_lelang}', [LelangController::class, 'penawaran']);
     Route::put('history/pemenang/{id_history}', 'HistoryController@status');
     Route::post('logout', [UserController::class, 'logout']);
+    Route::post('reportlelang', [LelangController::class, 'reportlelang']);
+    Route::post('reporthistory', 'HistoryController@reporthistory');
 });
 Route::group(['middleware' => ['jwt.verify:pengguna']], function ()
 {
-    Route::resource('barang', BarangController::class);
+    Route::post('penawaran/{id_lelang}', [LelangController::class, 'penawaran']);
+    Route::get('showpenawaran/{id}', [HistoryController::class, 'show']);
 });

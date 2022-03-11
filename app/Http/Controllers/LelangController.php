@@ -8,6 +8,9 @@ use App\Models\Lelang;
 use App\Models\Barang;
 use App\Models\History;
 use Carbon\Carbon; //memanggil tanggal
+use Illuminate\Support\Facades\DB;
+use JWTAuth;
+// use Tymon\JWTAuth\Facades\JWTAuth;
 
 class LelangController extends Controller
 {
@@ -16,16 +19,54 @@ class LelangController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public $users;
+
+    public function __construct()
+    {
+        $this->users = JWTAuth::parseToken()->authenticate();
+    }
     public function index()
     {
-        $lelang = Lelang::select('lelang.id_lelang as id_lelang',
-        'barang.id_barang as id_barang','barang.nama_barang as nama_barang', 'lelang.tgl_lelang as tgl_lelang', 'lelang.harga_akhir as harga_akhir',
-        'pengguna.id_pengguna as id_pengguna', 'petugas.id_petugas as petugas', 'lelang.status as status')
-        ->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')
-        ->join('users', 'lelang.id_pengguna', '=', 'users.id_pengguna')
-        ->join('users', 'lelang.id_petugas', '=', 'users.id_petugas')
-        ->get();
-        return Response()->json(['data'=>$lelang]);
+        // $lelang = Lelang::all();
+        $lelang = DB::table('lelang')->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')
+                                    ->join('users', 'lelang.id_petugas', '=', 'users.id')
+                ->select('lelang.*','barang.nama_barang','users.nama',)
+                ->get();
+        // $lelang = Lelang::select('lelang.id_lelang', 
+        //         'barang.id_barang','barang.nama_barang', 'lelang.tgl_lelang', 'lelang.harga_akhir',
+        //         'lelang.id_pengguna', 'lelang.id_petugas','users.nama', 'lelang.status')
+        // ->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')
+        // ->join('users', 'lelang.id_pengguna', '=', 'users.id')
+        // // ->join('users', 'lelang.id_petugas', '=', 'users.id')
+        // ->get();
+        // $lelang = DB::table('lelang')->join('lelang', 'barang.id_barang', '=', 'lelang.id_barang')
+        //          ->join('users', 'users.id', '=', 'lelang.id_pengguna')
+        //         //  ->join('users', 'users.id', '=', 'lelang.id_petugas')
+        //         ->select('lelang.id_lelang', 
+        //         'barang.id_barang','barang.nama_barang', 'lelang.tgl_lelang', 'lelang.harga_akhir',
+        //         'lelang.id_pengguna', 'lelang.id_petugas','users.nama', 'lelang.status')
+        //         ->get();
+        // $lelang = DB::table('lelang')->join('lelang', 'barang.id_barang', '=', 'lelang.id_barang')
+        //          ->join('users', 'users.id', '=', 'lelang.id_pengguna')
+        //         //  ->join('users', 'users.id', '=', 'lelang.id_petugas')
+        //         ->select(
+        //             'lelang.*',
+        //         'barang.nama_barang',)
+        //         ->get();
+        // $lelang = DB::table('barang')->join('lelang', 'barang.id_barang', '=', 'lelang.id_barang')
+        //         ->join('users as p', 'p.id', '=', 'lelang.id_pengguna')
+        //         // ->join('users', 'users.id', '=', 'lelang.id_petugas')
+        //         ->select('lelang.id_lelang', 
+        //         'barang.id_barang','barang.nama_barang', 'lelang.tgl_lelang', 'lelang.harga_akhir',
+        //         'lelang.id_pengguna'
+        //         ,'lelang.id_petugas','p.nama', 'lelang.status')
+        //         ->get();
+        // $lelangpt2 = DB::table('users')
+        // // ->join('users as p', 'p.id', '=', 'lelang.id_pengguna')
+        // ->join('users as u', 'u.id', '=', 'lelang.id_petugas')
+        // ->select('u.nama')
+        // ->get();
+        return Response()->json($lelang);
     }
 
     /**
@@ -70,8 +111,8 @@ class LelangController extends Controller
             $simpan->id_barang = $request->id_barang;
             $simpan->tgl_lelang = Carbon::now(); //diganti pake now
             // $simpan->harga_akhir = 10000;
-            $simpan->id_pengguna = 1;
-            $simpan->id_petugas = $request->id_petugas;
+            // $simpan->id_pengguna = null;
+            $simpan->id_petugas = $this->users->id;
             $simpan->status = 'dibuka';
             $simpan->save();
                 
@@ -93,14 +134,14 @@ class LelangController extends Controller
      */
     public function show($id)
     {
-        $lelang = Lelang::select('lelang.id_lelang as id_lelang',
-        'barang.id_barang as id_barang','barang.nama_barang as nama_barang', 'lelang.tgl_lelang as tgl_lelang', 'lelang.harga_akhir as harga_akhir',
-        'pengguna.id_pengguna as id_pengguna', 'petugas.id_petugas as petugas', 'lelang.status as status')
-        ->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')
-        ->join('pengguna', 'lelang.id_pengguna', '=', 'pengguna.id_pengguna')
-        ->join('petugas', 'lelang.id_petugas', '=', 'petugas.id_petugas')
-        ->first();
-        return Response()->json(['data'=>$lelang]);
+        $lelangcek = Lelang::select('*')->where('id_lelang', '=', $id)->first();
+        $lelang = DB::table('lelang')->leftJoin('barang', 'lelang.id_barang', '=', 'barang.id_barang')
+                                    ->leftJoin('users', 'lelang.id_pengguna', '=', 'users.id')
+                ->select('lelang.*','barang.nama_barang','users.nama','barang.foto','barang.harga_awal')
+                ->where('lelang.id_lelang', '=', $id)
+                ->first();
+
+        return Response()->json($lelang);
     }
 
     /**
@@ -123,7 +164,14 @@ class LelangController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+        $update=Lelang::find($id);
+
+        $update->id_barang = $request->id_barang;
+        $update->tgl_lelang = $request->tgl_lelang;
+        $update->status = $request->status;
+
+        $update->update();
+        return response()->json($update);
     }
 
     /**
@@ -144,39 +192,28 @@ class LelangController extends Controller
         }
     }
 
-    // public function penawaran(Request $request, $id_lelang){
-    //     $request -> validate([
-    //         'harga_akhir' => 'required',
-    //     ]);
+    public function reportlelang(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'tahun' => 'required',
+            'bulan' => 'required'
+        ]);
+        
+        if($validator->fails()) {
+            return response()->json($validator->errors());
+        }
 
-    //     $lelang = Lelang::find($id_lelang);
-    //     $harga = $request -> harga_akhir;
+        $tahun = $request->tahun;
+        $bulan = $request->bulan;
+        
+        $data = DB::table('lelang') ->leftJoin('barang', 'lelang.id_barang', '=', 'barang.id_barang')
+                                    ->leftJoin('users', 'lelang.id_pengguna', '=', 'users.id')
+                                    ->select('lelang.*','barang.nama_barang','users.nama','barang.foto','barang.harga_awal')
+                                    // ->where('lelang.id_lelang', '=', $id)
+                                    ->whereYear('tgl_lelang', '=' , $tahun)
+                                    ->whereMonth('tgl_lelang', '=', $bulan)
+                                    ->get();
 
-    //     if ($harga >= $lelang->barang->harga_awal) {
-    //         $data = new History;
-    //         $data->id_lelang = $id_lelang;
-    //         $data->id_barang = $id_barang;
-    //         $data->id_pengguna = $id_pengguna;
-    //         $data->penawaran_harga = $penawaran_harga;
-    //         $data->save();
-
-    //         if($data){
-    //             if ($harga > $lelang->harga_akhir) {
-    //                 $lelang->harga_akhir = $harga;
-    //                 $lelang->id_pengguna = $id_pengguna;
-    //                 $status = $lelang->update();
-
-    //                 if ($status) {
-    //                     return Response()->json(['status'=>'berhasil']);
-    //                 } else {
-    //                     return Response()->json(['status'=>'gagal']);
-    //                 }
-    //             }
-    //         } else{
-    //             return Response()->json(['status'=>'gagal tambah']);
-    //         }
-    //     } else{
-    //         return Response()->json(['status'=>'gagal beneran']);
-    //     }
-    // }
+        return response()->json($data);
+    }
 }

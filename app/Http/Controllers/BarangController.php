@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Barang;
+use Carbon\Carbon; //memanggil tanggal
 
 class BarangController extends Controller
 {
@@ -16,7 +17,7 @@ class BarangController extends Controller
     public function index()
     {
         $barang = Barang::all();
-        return Response()->json(['data'=>$barang]);
+        return Response()->json($barang);
     }
 
     /**
@@ -39,31 +40,25 @@ class BarangController extends Controller
     {
         $request->validate([
             'nama_barang' => 'required',
-            'tanggal_daftar' => 'required',
-            'foto' => 'required|mimes:jpeg,png',
             'harga_awal' => 'required',
             'deskripsi' => 'required',
         ]);
 
-        if($foto = $request->file('foto')){
-            $destination_path = public_path('/foto/');
-            $foto_barang = date('Ymd'). '.' . $foto->getClientOriginalExtension();
-            $foto -> move($destination_path, $foto_barang);
+        if($request->get('foto'))
+       {
+          $image = $request->get('foto');
+          $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+          \Image::make($request->get('foto'))->save(public_path('foto/').$name);
         }
 
         $simpan = new Barang;
         $simpan->nama_barang = $request->nama_barang;
-        $simpan->tanggal_daftar = $request->tanggal_daftar;
-        $simpan->foto = $foto_barang;
+        $simpan->tanggal_daftar = Carbon::now();
+        $simpan->foto = $name;
         $simpan->harga_awal = $request->harga_awal;
         $simpan->deskripsi = $request->deskripsi;
         $simpan->save();
-
-        if($simpan){
-            return Response()->json(['status'=>'berhasil']);
-        }else{
-            return Response()->json(['status'=>'gagal']);
-        }
+        return Response()->json($simpan);
     }
 
     /**
@@ -74,7 +69,8 @@ class BarangController extends Controller
      */
     public function show($id)
     {
-        //
+        $barang = Barang::find($id);
+        return Response()->json($barang);
     }
 
     /**
@@ -97,32 +93,23 @@ class BarangController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $model = Barang::where('id_barang',$id)->get();
-        if($request->hasFile('foto')){
-            $resorce = $request->file('foto');
-            $namefile =  $resorce->getClientOriginalName();// mengambil nama file original yang diupload
-            $resorce->move(\base_path() ."/public/foto", $namefile);// upload ke directory ke public/fotos
-            $path = public_path().'\\foto\\';// buat directory baru
-            $file_old = $path.$model->foto;// menggabung string dari alamat file yang lama
-            if(file_exists($path) && $model->foto != null) { // pengecekan apakah directory file yang lama ada atau data kolom foto di database sudah ada
-                unlink($file_old);
-            }
-            // edit database sesuai dengan data
-            $update = Menu::where('id_menu', $id)->update([
-                "name_food" => $request->name_food,
-                "foto" => $namefile,
-                "price" => $request->price,
-                "deskripsif" => $request->deskripsif,
-                "id_store" => $request->name_store,
-            ]);
-        }else {
-            $update = Menu::where('id_menu', $id)->update([
-                "name_food" => $request->name_food,
-                "price" => $request->price,
-                "deskripsif" => $request->deskripsif,
-                "id_store" => $request->name_store,
-            ]);
+        $update = Barang::find($id);
+
+        $update->nama_barang        = $request->nama_barang;
+        $update->tanggal_daftar     = $request->tanggal_daftar;
+        $update->harga_awal         = $request->harga_awal;
+        $update->deskripsi          = $request->deskripsi;
+        
+        if($request->foto != $update->foto){
+          $image = $request->get('foto');
+          $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+          \Image::make($request->get('foto'))->save(public_path('foto/').$name);
+          $update->foto = $name;
         }
+
+        $update->update();
+        return response()->json($update);
+        
     }
 
     /**

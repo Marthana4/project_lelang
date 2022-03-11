@@ -19,4 +19,7 @@ class History extends Model
         'id_pengguna',
         'status',
     ];
+    public function users() {
+    	return $this->belongsTo('App\Models\User','id','id_pengguna');
+    }
 }

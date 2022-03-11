@@ -23,6 +23,6 @@ class Lelang extends Model
     ];
 
     public function barang() {
-    	return $this->hasOne('App\Models\Barang','id_barang','id_barang');
+    	return $this->belongsTo('App\Models\Barang','id_barang','id_barang');
     }
 }
