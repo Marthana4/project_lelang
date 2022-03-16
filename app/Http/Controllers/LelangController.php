@@ -27,45 +27,11 @@ class LelangController extends Controller
     }
     public function index()
     {
-        // $lelang = Lelang::all();
         $lelang = DB::table('lelang')->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')
                                     ->join('users', 'lelang.id_petugas', '=', 'users.id')
-                ->select('lelang.*','barang.nama_barang','users.nama',)
+                ->select('lelang.*','barang.nama_barang','users.nama','barang.harga_awal', 'barang.deskripsi', 'barang.foto')
                 ->get();
-        // $lelang = Lelang::select('lelang.id_lelang', 
-        //         'barang.id_barang','barang.nama_barang', 'lelang.tgl_lelang', 'lelang.harga_akhir',
-        //         'lelang.id_pengguna', 'lelang.id_petugas','users.nama', 'lelang.status')
-        // ->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')
-        // ->join('users', 'lelang.id_pengguna', '=', 'users.id')
-        // // ->join('users', 'lelang.id_petugas', '=', 'users.id')
-        // ->get();
-        // $lelang = DB::table('lelang')->join('lelang', 'barang.id_barang', '=', 'lelang.id_barang')
-        //          ->join('users', 'users.id', '=', 'lelang.id_pengguna')
-        //         //  ->join('users', 'users.id', '=', 'lelang.id_petugas')
-        //         ->select('lelang.id_lelang', 
-        //         'barang.id_barang','barang.nama_barang', 'lelang.tgl_lelang', 'lelang.harga_akhir',
-        //         'lelang.id_pengguna', 'lelang.id_petugas','users.nama', 'lelang.status')
-        //         ->get();
-        // $lelang = DB::table('lelang')->join('lelang', 'barang.id_barang', '=', 'lelang.id_barang')
-        //          ->join('users', 'users.id', '=', 'lelang.id_pengguna')
-        //         //  ->join('users', 'users.id', '=', 'lelang.id_petugas')
-        //         ->select(
-        //             'lelang.*',
-        //         'barang.nama_barang',)
-        //         ->get();
-        // $lelang = DB::table('barang')->join('lelang', 'barang.id_barang', '=', 'lelang.id_barang')
-        //         ->join('users as p', 'p.id', '=', 'lelang.id_pengguna')
-        //         // ->join('users', 'users.id', '=', 'lelang.id_petugas')
-        //         ->select('lelang.id_lelang', 
-        //         'barang.id_barang','barang.nama_barang', 'lelang.tgl_lelang', 'lelang.harga_akhir',
-        //         'lelang.id_pengguna'
-        //         ,'lelang.id_petugas','p.nama', 'lelang.status')
-        //         ->get();
-        // $lelangpt2 = DB::table('users')
-        // // ->join('users as p', 'p.id', '=', 'lelang.id_pengguna')
-        // ->join('users as u', 'u.id', '=', 'lelang.id_petugas')
-        // ->select('u.nama')
-        // ->get();
+
         return Response()->json($lelang);
     }
 
@@ -118,11 +84,13 @@ class LelangController extends Controller
                 
             // return Response()->json(['status'=>'berhasil']);
 
-            if ($simpan) {
-                return Response()->json(['status'=>'berhasil']);
-            } else {
-                return Response()->json(['status'=>'gagal']);
-            }
+            $data = Lelang::where('id_lelang', '=', $simpan->id_lelang)->first();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Auction data sucessfully added',
+            'data' => $data
+        ]);
         }   
     }
 
@@ -171,7 +139,11 @@ class LelangController extends Controller
         $update->status = $request->status;
 
         $update->update();
-        return response()->json($update);
+        return response()->json([
+            'success' => true,
+            'message' => 'Auction data sucessfully updated',
+            'data' => $update
+        ]);
     }
 
     /**

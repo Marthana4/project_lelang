@@ -6,8 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use JWTAuth;
+// use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
 {
@@ -40,7 +41,6 @@ class UserController extends Controller
                 'no_hp' => 'required',
                 'username' => 'required',
                 'password' => 'required|min:6',
-                'level' => 'required',
             ]
         );
 
@@ -54,7 +54,7 @@ class UserController extends Controller
         $user->no_hp = $request ->no_hp;
         $user->username = $request ->username;
         $user->password = Hash::make($request ->password);
-        $user->level = $request -> level;
+        $user->level = 'pengguna';
         $user->save();
 
         $token = JWTAuth::fromUser($user);
@@ -64,26 +64,34 @@ class UserController extends Controller
 
     public function logincheck()
     {
-        try
-        {
-            if (! $user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['user_not_found'], 404);
+        try {
+            if (!$user = JWTAuth::parseToken()->authenticate()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid Token'
+                ]);
             }
-        }
-        catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e)
-        {
-            return response()->json(['token_expired'], $e->getStatusCode());
-        }
-        catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e)
-        {
-            return response()->json(['token_invalid'], $e->getStatusCode());
-        }
-        catch (Tymon\JWTAuth\Exceptions\JWTException $e)
-        {
-            return response()->json(['token_absent'], $e->getStatusCode());
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token expired!'
+            ]);
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid Token!'
+            ]);
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token Absent'
+            ]);
         }
 
-        return response()->json(compact('user'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Success'
+        ]);
     }
 
     public function logout(Request $request){
@@ -106,6 +114,42 @@ class UserController extends Controller
         return Response()->json($user);
     }
 
+    public function store(Request $request){
+        $validator = Validator::make($request->all(),
+            [
+                'nama' => 'required|string',
+                'alamat' => 'required',
+                'no_hp' => 'required',
+                'username' => 'required',
+                'password' => 'required|min:6',
+                'level' => 'required',
+            ]
+        );
+
+        if($validator->fails()){
+            return Response()->json($validator->errors());
+        }
+
+        $user = new User();
+        $user->nama = $request ->nama;
+        $user->alamat = $request ->alamat;
+        $user->no_hp = $request ->no_hp;
+        $user->username = $request ->username;
+        $user->password = Hash::make($request ->password);
+        $user->level = $request -> level;
+        $user->save();
+
+        $token = JWTAuth::fromUser($user);
+
+        $data = User::where('id', '=', $user->id)->first();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'User data sucessfully added',
+            'data' => $data
+        ]);
+    }
+
     public function edit(Request $req, $id)
     {
         $req->validate([
@@ -124,11 +168,11 @@ class UserController extends Controller
 
         $update->update();
 
-        if($update){
-            return response()->json($update);
-        }else{
-            return response()->json($update);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'User data sucessfully updated',
+            'data' => $update
+        ]);
     }
 
     public function destroy($id)

@@ -58,7 +58,14 @@ class BarangController extends Controller
         $simpan->harga_awal = $request->harga_awal;
         $simpan->deskripsi = $request->deskripsi;
         $simpan->save();
-        return Response()->json($simpan);
+
+        $data = Barang::where('id_barang', '=', $simpan->id_barang)->first();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Item data sucessfully added',
+            'data' => $data
+        ]);
     }
 
     /**
@@ -108,7 +115,11 @@ class BarangController extends Controller
         }
 
         $update->update();
-        return response()->json($update);
+        return response()->json([
+            'success' => true,
+            'message' => 'Item data sucessfully updated',
+            'data' => $update
+        ]);
         
     }
 
