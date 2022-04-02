@@ -52,7 +52,6 @@ Route::group(['middleware' => ['jwt.verify:pengguna']], function ()
     Route::get('showpenawaran', 'HistoryController@show2');
     Route::get('showpenawaranlelang/{id_lelang}', 'HistoryController@show3');
     Route::get('tambahpenawaran/{id_lelang}', 'HistoryController@show4');
-    Route::get('penawaranbarang/{id_lelang}', 'HistoryController@barang');
 });
 
 Route::group(['middleware' => ['jwt.verify:pengguna,admin,petugas']], function ()

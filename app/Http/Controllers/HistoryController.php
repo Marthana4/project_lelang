@@ -26,9 +26,18 @@ class HistoryController extends Controller
 
     public function index()
     {
-        $history = History::select('history.id_history as id_history',
-        'lelang.id_lelang as id_lelang','barang.id_barang as id_barang','barang.nama_barang as nama_barang', 'lelang.tgl_lelang as tgl_lelang', 'lelang.harga_akhir as harga_akhir',
-        'users.id as id_pengguna','users.nama as nama','history.penawaran_harga as penawaran_harga', 'history.status_pemenang as status_pemenang')
+        $history = History::select(
+            'history.id_history as id_history',
+            'lelang.id_lelang as id_lelang',
+            'barang.id_barang as id_barang',
+            'barang.nama_barang as nama_barang',
+            'lelang.tgl_lelang as tgl_lelang',
+            'lelang.harga_akhir as harga_akhir',
+            'users.id as id_pengguna',
+            'users.nama as nama',
+            'history.penawaran_harga as penawaran_harga',
+            'history.status_pemenang as status_pemenang'
+        )
         
         ->join('barang', 'history.id_barang', '=', 'barang.id_barang')
         ->join('users', 'history.id_pengguna', '=', 'users.id')
@@ -55,44 +64,44 @@ class HistoryController extends Controller
      */
     public function store(Request $request)
     {
-        $cek = DB::table('lelang')->where('id_lelang',$request->id_lelang)
-                ->join('barang','lelang.id_barang','=','barang.id_barang')->first();
+        $cek = DB::table('lelang')->where('id_lelang', $request->id_lelang)
+                ->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')->first();
         
-        $max = DB::table('history')->where('id_lelang',$request->id_lelang)
+        $max = DB::table('history')->where('id_lelang', $request->id_lelang)
         ->max('penawaran_harga');
-        $row = DB::table('history')->where('id_lelang',$request->id_lelang)->count();
+        $row = DB::table('history')->where('id_lelang', $request->id_lelang)->count();
         if ($row==0) {
             if ($request->penawaran_harga < $cek->harga_awal) {
                 return response()->json(['gagal','Harga tidak boleh kurang dari harga awal']);//tambahnotif
             }
-            $simpan = new History;
-                $simpan->id_lelang = $request->id_lelang;
-                $simpan->id_barang = $request->id_barang;
-                // $simpan->id_pengguna = $request->id_pengguna;
-                $simpan->id_pengguna = $this->user->id;
-                $simpan->penawaran_harga = $request->penawaran_harga;
-                $simpan->save();
+        } else {
+            if ($request->penawaran_harga < $max) {
+                return response()->json(['gagal','Harga tidak boleh kurang dari harga penawaran sebelumnya']);//tambahnotif
+            }
+        }
+        $simpan = new History;
+        $simpan->id_lelang = $request->id_lelang;
+        $simpan->id_barang = $request->id_barang;
+        // $simpan->id_pengguna = $request->id_pengguna;
+        $simpan->id_pengguna = $this->user->id;
+        $simpan->penawaran_harga = $request->penawaran_harga;
+        $simpan->save();
     
-                $data = History::where('id_history', '=', $simpan->id_history)->first();
-        
-                return response()->json([
-            'success' => true,
+        $data = History::where('id_history', '=', $simpan->id_history)->first();
+
+        if ($data) {
+            return response()->json([
+                'success' => true,
             'message' => 'Bid data sucessfully added',
             'data' => $data
-        ]);
-        }else{
-
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+            'message' => 'Your bid must be bigger',
+            'data' => $data
+            ]);
         }
-        
-    }
-
-    public function barang($id){
-        $lelang = Lelang::where('id_lelang',$id)
-                ->join('barang','lelang.id_barang','=','barang.id_barang')
-                ->select('barang.*')
-                ->first();
-
-        return response()->json($lelang);
     }
 
     public function status($id)
@@ -129,11 +138,11 @@ class HistoryController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show($id)
-    {         
-        $history=DB::table('history')->leftJoin('users', 'history.id_pengguna','=', 'users.id')
-                    ->leftJoin('barang','history.id_barang','=','barang.id_barang')
+    {
+        $history=DB::table('history')->leftJoin('users', 'history.id_pengguna', '=', 'users.id')
+                    ->leftJoin('barang', 'history.id_barang', '=', 'barang.id_barang')
                     ->select('users.*', 'history.*')
-                    ->where('id_lelang',$id)
+                    ->where('id_lelang', $id)
                     ->where('history.id_lelang', '=', $id)
                     ->orderBy('history.penawaran_harga', 'DESC')
                     ->get();
@@ -141,21 +150,20 @@ class HistoryController extends Controller
         return Response()->json($history);
     }
 
-    public function show2() 
+    public function show2()
     {
         $history=DB::table('history')->leftJoin('users', 'history.id_pengguna', 'users.id')
                     ->leftJoin('barang', 'history.id_barang', 'barang.id_barang')
                     ->select('users.*', 'history.*', 'barang.*')
-                    ->where('id_pengguna',Auth::user()->id)
+                    ->where('id_pengguna', Auth::user()->id)
                     ->orderBy('history.id_history', 'ASC')
                     ->get();
 
         return Response()->json($history);
     }
 
-    public function show3($id) 
+    public function show3($id)
     {
-        
         $history=DB::table('history')->leftJoin('users', 'history.id_pengguna', 'users.id')
                     ->leftJoin('barang', 'history.id_barang', 'barang.id_barang')
                     ->select('users.*', 'history.*', 'barang.*')
@@ -166,10 +174,9 @@ class HistoryController extends Controller
         return Response()->json($history);
     }
 
-    public function show4($id) 
+    public function show4($id)
     {
-        
-        $penawaran = DB::table('history')->where('id_lelang',$id)->where('id_pengguna',Auth::user()->id)->first();
+        $penawaran = DB::table('history')->where('id_lelang', $id)->where('id_pengguna', Auth::user()->id)->first();
         return Response()->json($penawaran);
     }
 
@@ -179,7 +186,7 @@ class HistoryController extends Controller
             'status_pemenang' => 'required',
         ]);
         
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json($validator->errors());
         }
 
@@ -188,8 +195,8 @@ class HistoryController extends Controller
         $data = DB::table('history') ->join('barang', 'history.id_barang', '=', 'barang.id_barang')
                                     ->join('users', 'history.id_pengguna', '=', 'users.id')
                                     ->join('lelang', 'history.id_lelang', '=', 'lelang.id_lelang')
-                                    ->select('history.*', 'barang.nama_barang','lelang.tgl_lelang','lelang.harga_akhir', 'users.nama', 'users.no_hp')
-                                    ->where('status_pemenang', '=' , $status_pemenang)
+                                    ->select('history.*', 'barang.nama_barang', 'lelang.tgl_lelang', 'lelang.harga_akhir', 'users.nama', 'users.no_hp')
+                                    ->where('status_pemenang', '=', $status_pemenang)
                                     ->get();
 
         return response()->json($data);
