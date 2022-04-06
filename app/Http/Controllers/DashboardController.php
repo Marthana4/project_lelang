@@ -24,9 +24,18 @@ class DashboardController extends Controller
 
     public function history()
     {
-        $penawaran = History::select('history.id_history as id_history',
-        'lelang.id_lelang as id_lelang','barang.id_barang as id_barang','barang.nama_barang as nama_barang', 'lelang.tgl_lelang as tgl_lelang', 'lelang.harga_akhir as harga_akhir',
-        'users.id as id_pengguna','users.nama as nama','history.penawaran_harga as penawaran_harga', 'history.status_pemenang as status_pemenang')
+        $penawaran = History::select(
+            'history.id_history as id_history',
+            'lelang.id_lelang as id_lelang',
+            'barang.id_barang as id_barang',
+            'barang.nama_barang as nama_barang',
+            'lelang.tgl_lelang as tgl_lelang',
+            'lelang.harga_akhir as harga_akhir',
+            'users.id as id_pengguna',
+            'users.nama as nama',
+            'history.penawaran_harga as penawaran_harga',
+            'history.status_pemenang as status_pemenang'
+        )
         
         ->join('barang', 'history.id_barang', '=', 'barang.id_barang')
         ->join('users', 'history.id_pengguna', '=', 'users.id')

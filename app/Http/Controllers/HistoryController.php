@@ -75,14 +75,13 @@ class HistoryController extends Controller
                 return response()->json(['gagal','Harga tidak boleh kurang dari harga awal']);//tambahnotif
             }
         } else {
-            if ($request->penawaran_harga < $max) {
+            if ($request->penawaran_harga <= $max) {
                 return response()->json(['gagal','Harga tidak boleh kurang dari harga penawaran sebelumnya']);//tambahnotif
-            }
+            } 
         }
         $simpan = new History;
         $simpan->id_lelang = $request->id_lelang;
         $simpan->id_barang = $request->id_barang;
-        // $simpan->id_pengguna = $request->id_pengguna;
         $simpan->id_pengguna = $this->user->id;
         $simpan->penawaran_harga = $request->penawaran_harga;
         $simpan->save();
@@ -91,13 +90,13 @@ class HistoryController extends Controller
 
         if ($data) {
             return response()->json([
-                'success' => true,
+            'success' => true,
             'message' => 'Bid data sucessfully added',
             'data' => $data
             ]);
         } else {
             return response()->json([
-                'success' => false,
+            'success' => false,
             'message' => 'Your bid must be bigger',
             'data' => $data
             ]);
@@ -162,7 +161,7 @@ class HistoryController extends Controller
         return Response()->json($history);
     }
 
-    public function show3($id)
+    public function showpenawaran($id)
     {
         $history=DB::table('history')->leftJoin('users', 'history.id_pengguna', 'users.id')
                     ->leftJoin('barang', 'history.id_barang', 'barang.id_barang')
@@ -174,7 +173,7 @@ class HistoryController extends Controller
         return Response()->json($history);
     }
 
-    public function show4($id)
+    public function tambahpenawaran($id)
     {
         $penawaran = DB::table('history')->where('id_lelang', $id)->where('id_pengguna', Auth::user()->id)->first();
         return Response()->json($penawaran);

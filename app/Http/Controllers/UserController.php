@@ -16,8 +16,7 @@ class UserController extends Controller
     {
         $credentials = $request->only('username', 'password');
         try {
-            if(! $token = JWTAuth::attempt($credentials))
-            {
+            if (! $token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'invalid_credentials'], 400);
             }
         } catch (JWTException $e) {
@@ -33,8 +32,10 @@ class UserController extends Controller
         ]);
     }
 
-    public function register(Request $request){
-        $validator = Validator::make($request->all(),
+    public function register(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
             [
                 'nama' => 'required|string',
                 'alamat' => 'required',
@@ -44,7 +45,7 @@ class UserController extends Controller
             ]
         );
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return Response()->json($validator->errors());
         }
 
@@ -94,10 +95,11 @@ class UserController extends Controller
         ]);
     }
 
-    public function logout(Request $request){
-        if (JWTAuth::invalidate(JWTAuth::getToken())){
+    public function logout(Request $request)
+    {
+        if (JWTAuth::invalidate(JWTAuth::getToken())) {
             return Response()->json(['message'=>'Anda sudah log out']);
-        } else{
+        } else {
             return Response()->json(['message'=>'Anda gagal log out']);
         }
     }
@@ -114,8 +116,10 @@ class UserController extends Controller
         return Response()->json($user);
     }
 
-    public function store(Request $request){
-        $validator = Validator::make($request->all(),
+    public function store(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
             [
                 'nama' => 'required|string',
                 'alamat' => 'required',
@@ -126,7 +130,7 @@ class UserController extends Controller
             ]
         );
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return Response()->json($validator->errors());
         }
 
@@ -185,5 +189,4 @@ class UserController extends Controller
             return response()->json(['message' => 'Gagal dihapus']);
         }
     }
-
 }

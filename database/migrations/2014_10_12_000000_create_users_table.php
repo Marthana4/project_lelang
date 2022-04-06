@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->BigInteger('no_hp');
             $table->string('username');
             $table->string('password');
-            $table->enum('level',['pengguna', 'petugas', 'admin']);
+            $table->enum('level', ['pengguna', 'petugas', 'admin']);
             $table->timestamps();
         });
     }

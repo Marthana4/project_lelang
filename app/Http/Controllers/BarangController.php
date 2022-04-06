@@ -27,7 +27,6 @@ class BarangController extends Controller
      */
     public function create()
     {
-        
     }
 
     /**
@@ -44,11 +43,10 @@ class BarangController extends Controller
             'deskripsi' => 'required',
         ]);
 
-        if($request->get('foto'))
-       {
-          $image = $request->get('foto');
-          $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
-          \Image::make($request->get('foto'))->save(public_path('foto/').$name);
+        if ($request->get('foto')) {
+            $image = $request->get('foto');
+            $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+            \Image::make($request->get('foto'))->save(public_path('foto/').$name);
         }
 
         $simpan = new Barang;
@@ -107,11 +105,11 @@ class BarangController extends Controller
         $update->harga_awal         = $request->harga_awal;
         $update->deskripsi          = $request->deskripsi;
         
-        if($request->foto != $update->foto){
-          $image = $request->get('foto');
-          $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
-          \Image::make($request->get('foto'))->save(public_path('foto/').$name);
-          $update->foto = $name;
+        if ($request->foto != $update->foto) {
+            $image = $request->get('foto');
+            $name = time().'.' . explode('/', explode(':', substr($image, 0, strpos($image, ';')))[1])[1];
+            \Image::make($request->get('foto'))->save(public_path('foto/').$name);
+            $update->foto = $name;
         }
 
         $update->update();
@@ -120,7 +118,6 @@ class BarangController extends Controller
             'message' => 'Item data sucessfully updated',
             'data' => $update
         ]);
-        
     }
 
     /**
@@ -139,6 +136,5 @@ class BarangController extends Controller
         } else {
             return response()->json(['status'=>'Data gagal dihapus']);
         }
-        
     }
 }

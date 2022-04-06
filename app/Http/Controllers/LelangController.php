@@ -10,6 +10,7 @@ use App\Models\History;
 use Carbon\Carbon; //memanggil tanggal
 use Illuminate\Support\Facades\DB;
 use JWTAuth;
+
 // use Tymon\JWTAuth\Facades\JWTAuth;
 
 class LelangController extends Controller
@@ -29,7 +30,7 @@ class LelangController extends Controller
     {
         $lelang = DB::table('lelang')->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')
                                     ->join('users', 'lelang.id_petugas', '=', 'users.id')
-                ->select('lelang.*','barang.nama_barang','users.nama','barang.harga_awal', 'barang.deskripsi', 'barang.foto')
+                ->select('lelang.*', 'barang.nama_barang', 'users.nama', 'barang.harga_awal', 'barang.deskripsi', 'barang.foto')
                 ->get();
 
         return Response()->json($lelang);
@@ -53,45 +54,32 @@ class LelangController extends Controller
      */
     public function store(Request $request)
     {
-        // $request -> validate([
-        //     'id_barang' => 'required',
-        //     'tgl_lelang' => 'required',
-        //     // 'harga_akhir' => 'required',
-        //     // 'id_pengguna' => 'required',
-        //     'id_petugas' => 'required',
-        //     // 'status' => 'required',
-        // ]);
 
-        $cek = Lelang::where('lelang.id_barang',$request->id_barang)
-                ->where('status','dibuka')
-                ->join('barang','lelang.id_barang','=','barang.id_barang')
+        $cek = Lelang::where('lelang.id_barang', $request->id_barang)
+                ->where('status', 'dibuka')
+                ->join('barang', 'lelang.id_barang', '=', 'barang.id_barang')
                 ->get();
         
         $cek2 = count($cek);
         
-        if($cek2 == 1){
+        if ($cek2 == 1) {
             return Response()->json(['status'=>'gagal, barang sudah di lelang']);
-
-        }else{
+        } else {
             $simpan = new Lelang;
             $simpan->id_barang = $request->id_barang;
-            $simpan->tgl_lelang = Carbon::now(); //diganti pake now
-            // $simpan->harga_akhir = 10000;
-            // $simpan->id_pengguna = null;
+            $simpan->tgl_lelang = Carbon::now();
             $simpan->id_petugas = $this->users->id;
             $simpan->status = 'dibuka';
             $simpan->save();
-                
-            // return Response()->json(['status'=>'berhasil']);
 
             $data = Lelang::where('id_lelang', '=', $simpan->id_lelang)->first();
         
-        return response()->json([
+            return response()->json([
             'success' => true,
             'message' => 'Auction data sucessfully added',
             'data' => $data
         ]);
-        }   
+        }
     }
 
     /**
@@ -104,10 +92,10 @@ class LelangController extends Controller
     {
         $lelangcek = Lelang::select('*')->where('id_lelang', '=', $id)->first();
         $lelang = DB::table('lelang')->leftJoin('barang', 'lelang.id_barang', '=', 'barang.id_barang')
-                                    ->leftJoin('users', 'lelang.id_pengguna', '=', 'users.id')
-                ->select('lelang.*','barang.nama_barang','users.nama','barang.foto','barang.harga_awal')
-                ->where('lelang.id_lelang', '=', $id)
-                ->first();
+                                     ->leftJoin('users', 'lelang.id_pengguna', '=', 'users.id')
+                                     ->select('lelang.*', 'barang.nama_barang', 'users.nama', 'barang.foto', 'barang.harga_awal')
+                                     ->where('lelang.id_lelang', '=', $id)
+                                     ->first();
 
         return Response()->json($lelang);
     }
@@ -171,7 +159,7 @@ class LelangController extends Controller
             'bulan' => 'required'
         ]);
         
-        if($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json($validator->errors());
         }
 
@@ -180,9 +168,9 @@ class LelangController extends Controller
         
         $data = DB::table('lelang') ->leftJoin('barang', 'lelang.id_barang', '=', 'barang.id_barang')
                                     ->leftJoin('users', 'lelang.id_pengguna', '=', 'users.id')
-                                    ->select('lelang.*','barang.nama_barang','users.nama','barang.foto','barang.harga_awal')
+                                    ->select('lelang.*', 'barang.nama_barang', 'users.nama', 'barang.foto', 'barang.harga_awal')
                                     // ->where('lelang.id_lelang', '=', $id)
-                                    ->whereYear('tgl_lelang', '=' , $tahun)
+                                    ->whereYear('tgl_lelang', '=', $tahun)
                                     ->whereMonth('tgl_lelang', '=', $bulan)
                                     ->get();
 

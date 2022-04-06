@@ -22,7 +22,8 @@ class Lelang extends Model
         'status',
     ];
 
-    public function barang() {
-    	return $this->belongsTo('App\Models\Barang','id_barang','id_barang');
+    public function barang()
+    {
+        return $this->belongsTo('App\Models\Barang', 'id_barang', 'id_barang');
     }
 }
